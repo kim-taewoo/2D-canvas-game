@@ -99,27 +99,32 @@ const player = new Player({
   }, 1000);
 })();
 
+let animationId;
 (function animate() {
-  requestAnimationFrame(animate);
+  animationId = requestAnimationFrame(animate);
   c.clearRect(0, 0, canvas.width, canvas.height);
   player.update();
   projectiles.forEach((projectile) => {
     projectile.update();
   });
-  enemies.forEach((enemy) => {
+  enemies.forEach((enemy, enemyIndex) => {
     enemy.update();
 
     const dist = Math.hypot(enemy.x - player.x, enemy.y - player.y);
-    if (dist - enemy.radius - player.radius < 1) {
+    if (dist - enemy.radius - player.radius < 0.5) {
       console.log("GAME OVER");
+      cancelAnimationFrame(animationId);
     }
 
-    // projectiles.forEach((projectile) => {
-    //   const dist = Math.hypot(projectile.x - enemy.x, projectile.y, -enemy.y);
-    //   if (dist - enemy.radius - projectile.radius < 1) {
-    //     alert("hit!");
-    //   }
-    // });
+    projectiles.forEach((projectile, projectileIndex) => {
+      const dist = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y);
+      if (dist - enemy.radius - projectile.radius < 0.5) {
+        setTimeout(() => {
+          enemies.splice(enemyIndex, 1);
+          projectiles.splice(projectileIndex, 1);
+        });
+      }
+    });
   });
 })();
 
