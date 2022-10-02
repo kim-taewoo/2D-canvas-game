@@ -104,14 +104,26 @@ let animationId;
   animationId = requestAnimationFrame(animate);
   c.clearRect(0, 0, canvas.width, canvas.height);
   player.update();
-  projectiles.forEach((projectile) => {
+
+  projectiles.forEach((projectile, projectileIndex) => {
     projectile.update();
+    if (
+      projectile.x + projectile.radius < 0 ||
+      projectile.x - projectile.radius > canvas.width ||
+      projectile.y + projectile.radius < 0 ||
+      projectile.y - projectile.radius > canvas.height
+    ) {
+      setTimeout(() => {
+        projectiles.splice(projectileIndex, 1);
+      }, 0);
+    }
   });
+
   enemies.forEach((enemy, enemyIndex) => {
     enemy.update();
 
     const dist = Math.hypot(enemy.x - player.x, enemy.y - player.y);
-    if (dist - enemy.radius - player.radius < 0.5) {
+    if (dist - enemy.radius - player.radius < -0.3) {
       console.log("GAME OVER");
       cancelAnimationFrame(animationId);
     }
