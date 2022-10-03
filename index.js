@@ -2,15 +2,26 @@
 // DOM 에서 가져오지 않고 createElement 로 canvas 를 만들면 타입 주입 없이도 잘 된다.
 /** @type {HTMLCanvasElement} */
 const canvas = document.querySelector("canvas");
+const scoreEl = document.querySelector("#score");
 const c = canvas.getContext("2d");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width =
+  // document.documentElement.clientWidth ||
+  // document.clientWidth ||
+  window.innerWidth;
+canvas.height =
+  // document.documentElement.clientHeight ||
+  // document.clientHeight ||
+  window.innerHeight;
 const canvasMiddleX = canvas.width / 2;
 const canvasMiddleY = canvas.height / 2;
 
+const friction = 0.98;
+
+let score = 0;
 const projectiles = [];
 const enemies = [];
+const particles = [];
 
 class Player {
   constructor({ x, y, radius, color }) {
@@ -62,6 +73,31 @@ class Enemy extends Projectile {
   }
 }
 
+class Particle extends Projectile {
+  constructor(args) {
+    super({ ...args });
+    this.alpha = 1;
+  }
+
+  draw() {
+    // c.save(), c.restore() 를 통해서 canvas global method 를 호출하면서도
+    // 그 영향력을 이 사이 부분에만 제한시킬 수 있다.
+    c.save();
+    c.globalAlpha = this.alpha;
+    super.draw();
+    c.restore();
+  }
+
+  update() {
+    this.draw();
+    this.velocity.x *= friction;
+    this.velocity.y *= friction;
+    this.x = this.x + this.velocity.x;
+    this.y = this.y + this.velocity.y;
+    this.alpha -= 0.01;
+  }
+}
+
 const player = new Player({
   x: canvasMiddleX,
   y: canvasMiddleY,
@@ -109,6 +145,14 @@ let animationId;
   // c.clearRect(0, 0, canvas.width, canvas.height);
   player.update();
 
+  particles.forEach((particle, particleIndex) => {
+    if (particle.alpha <= 0) {
+      particles.splice(particleIndex, 1);
+    } else {
+      particle.update();
+    }
+  });
+
   projectiles.forEach((projectile, projectileIndex) => {
     projectile.update();
     if (
@@ -127,18 +171,54 @@ let animationId;
     enemy.update();
 
     const dist = Math.hypot(enemy.x - player.x, enemy.y - player.y);
-    if (dist - enemy.radius - player.radius < -0.3) {
+    if (dist - enemy.radius - player.radius < 0.5) {
       console.log("GAME OVER");
       cancelAnimationFrame(animationId);
     }
 
     projectiles.forEach((projectile, projectileIndex) => {
       const dist = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y);
+
+      // When the projectile hits an enemy
       if (dist - enemy.radius - projectile.radius < 0.5) {
-        setTimeout(() => {
-          enemies.splice(enemyIndex, 1);
-          projectiles.splice(projectileIndex, 1);
-        });
+        // create explosion effect
+        for (let i = 0; i < enemy.radius * 2; i++) {
+          particles.push(
+            new Particle({
+              x: projectile.x,
+              y: projectile.y,
+              radius: Math.random() * 2,
+              color: enemy.color,
+              velocity: {
+                x: (Math.random() - 0.5) * (Math.random() * 6),
+                y: (Math.random() - 0.5) * (Math.random() * 6),
+              },
+            })
+          );
+        }
+        // 맞아서 줄어든 뒤에도 맞추기 쉬울 정도의 크기는 되어야 한다.
+        if (enemy.radius - 10 > 7) {
+          // gsap 을 이용해서 enemy 의 radius shrink 값 변경을 보간해준다.
+          score += 100;
+          scoreEl.innerHTML = score;
+          gsap.to(enemy, {
+            radius: enemy.radius - 10,
+          });
+          setTimeout(() => projectiles.splice(projectileIndex, 1), 0);
+        } else {
+          score += 150;
+          scoreEl.innerHTML = score;
+
+          setTimeout(() => {
+            // TODO: gsap 으로 값을 보간하려고 해도 바로 아래서 splice 로 제거해버리므로 줄어드는 게 보이기 전에 없어져 버린다.
+            // 줄어드는 게 보이도록 수정 필요 (제거해버리는 걸 다음 루프로 넘기면 되지 않을까 싶기도 한데.. 애매)
+            // gsap.to(enemy, {
+            //   radius: 0,
+            // });
+            enemies.splice(enemyIndex, 1);
+            projectiles.splice(projectileIndex, 1);
+          });
+        }
       }
     });
   });
@@ -162,4 +242,12 @@ window.addEventListener("click", (e) => {
     velocity,
   });
   projectiles.push(projectile);
+});
+
+// 브라우저에 따라 화면의 크기는 렌더링 과정에서 달라질 수 있다. 따라서 canvas 너비, 높이를 초기 한 번의 값으로 세팅하기 보다
+// resize 이벤트에 따라 풀 사이즈를 세팅해주는 것이 좋다.(근데 분명히 사이즈가 변했는데 resize 핸들러의 콘솔을 안 찍힘.. 숨기는 건가?)
+window.addEventListener("resize", () => {
+  console.log("resized");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 });
