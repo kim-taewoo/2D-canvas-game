@@ -125,6 +125,9 @@ function init() {
     radius: 10,
     color: "white",
   });
+  // 객체들의 자취 제거 (fillRect 에 투명도 있는 색으로 게임중에 덧칠하기 때문에 흔적이 남음)
+  c.fillStyle = "black";
+  c.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function spawnEnemies() {
