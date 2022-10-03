@@ -65,8 +65,8 @@ class Enemy extends Projectile {
 const player = new Player({
   x: canvasMiddleX,
   y: canvasMiddleY,
-  radius: 40,
-  color: "blue",
+  radius: 10,
+  color: "white",
 });
 
 (function spawnEnemies() {
@@ -85,7 +85,7 @@ const player = new Player({
       y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
     }
 
-    const color = "green";
+    const color = `hsl(${Math.random() * 360}, 50%, 50%)`;
 
     // Always subtract from your destination
     const angle = Math.atan2(player.y - y, player.x - x);
@@ -102,7 +102,11 @@ const player = new Player({
 let animationId;
 (function animate() {
   animationId = requestAnimationFrame(animate);
-  c.clearRect(0, 0, canvas.width, canvas.height);
+  // 원래는 clearRect 를 해서 완전히 지워지고 새로운 프레임을 그려야 하겠지만
+  // opacity 를 넣어줌으로써 빛의 꼬리 효과를 낼 수 있다. (fillRect 로 이전 것을 다 덮어버리긴 하지만 투명도가 있으므로 좀 덜 지워지는 느낌으로 덮임)
+  c.fillStyle = "rgba(0,0,0,0.1)";
+  c.fillRect(0, 0, canvas.width, canvas.height);
+  // c.clearRect(0, 0, canvas.width, canvas.height);
   player.update();
 
   projectiles.forEach((projectile, projectileIndex) => {
@@ -147,14 +151,14 @@ window.addEventListener("click", (e) => {
   const angle = Math.atan2(e.clientY - player.y, e.clientX - player.x);
   // cos is for X and sin for Y
   const velocity = {
-    x: Math.cos(angle),
-    y: Math.sin(angle),
+    x: Math.cos(angle) * 5,
+    y: Math.sin(angle) * 5,
   };
   const projectile = new Projectile({
     x: canvasMiddleX,
     y: canvasMiddleY,
     radius: 5,
-    color: "red",
+    color: "white",
     velocity,
   });
   projectiles.push(projectile);
