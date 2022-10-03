@@ -135,6 +135,11 @@ const player = new Player({
   }, 1000);
 })();
 
+// **왜 for loop 을 거꾸로 하는가??**
+// 그렇게 해야만 array 에서 element 를 제거하는 경우가 있을 때 (splice 같은 걸 통해서) 제거하는 element 의 뒤쪽 index 를 망치지 않을 것을 확신할 수 있다.
+// 또한 이미 화면에 그려진 element 가 있는데 그 element 를 지우게 되면 이미 그려졌던 화면이 깜빡이면서 다시 그리게 되는 상황이 발생하게 되는데,
+// 이를 막기 위해 setTimeout 같은 걸 이용해서 render 순서를 뒤로 미뤄야 하는 귀찮은 짓을 안 할 수 있다.
+
 let animationId;
 (function animate() {
   animationId = requestAnimationFrame(animate);
@@ -145,15 +150,25 @@ let animationId;
   // c.clearRect(0, 0, canvas.width, canvas.height);
   player.update();
 
-  particles.forEach((particle, particleIndex) => {
+  for (
+    let particleIndex = particles.length - 1;
+    particleIndex >= 0;
+    particleIndex--
+  ) {
+    const particle = particles[particleIndex];
     if (particle.alpha <= 0) {
       particles.splice(particleIndex, 1);
     } else {
       particle.update();
     }
-  });
+  }
 
-  projectiles.forEach((projectile, projectileIndex) => {
+  for (
+    let projectileIndex = projectiles.length - 1;
+    projectileIndex >= 0;
+    projectileIndex--
+  ) {
+    const projectile = projectiles[projectileIndex];
     projectile.update();
     if (
       projectile.x + projectile.radius < 0 ||
@@ -161,13 +176,12 @@ let animationId;
       projectile.y + projectile.radius < 0 ||
       projectile.y - projectile.radius > canvas.height
     ) {
-      setTimeout(() => {
-        projectiles.splice(projectileIndex, 1);
-      }, 0);
+      projectiles.splice(projectileIndex, 1);
     }
-  });
+  }
 
-  enemies.forEach((enemy, enemyIndex) => {
+  for (let enemyIndex = enemies.length - 1; enemyIndex >= 0; enemyIndex--) {
+    const enemy = enemies[enemyIndex];
     enemy.update();
 
     const dist = Math.hypot(enemy.x - player.x, enemy.y - player.y);
@@ -176,7 +190,12 @@ let animationId;
       cancelAnimationFrame(animationId);
     }
 
-    projectiles.forEach((projectile, projectileIndex) => {
+    for (
+      let projectileIndex = projectiles.length - 1;
+      projectileIndex >= 0;
+      projectileIndex--
+    ) {
+      const projectile = projectiles[projectileIndex];
       const dist = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y);
 
       // When the projectile hits an enemy
@@ -204,24 +223,22 @@ let animationId;
           gsap.to(enemy, {
             radius: enemy.radius - 10,
           });
-          setTimeout(() => projectiles.splice(projectileIndex, 1), 0);
+          projectiles.splice(projectileIndex, 1);
         } else {
           score += 150;
           scoreEl.innerHTML = score;
 
-          setTimeout(() => {
-            // TODO: gsap 으로 값을 보간하려고 해도 바로 아래서 splice 로 제거해버리므로 줄어드는 게 보이기 전에 없어져 버린다.
-            // 줄어드는 게 보이도록 수정 필요 (제거해버리는 걸 다음 루프로 넘기면 되지 않을까 싶기도 한데.. 애매)
-            // gsap.to(enemy, {
-            //   radius: 0,
-            // });
-            enemies.splice(enemyIndex, 1);
-            projectiles.splice(projectileIndex, 1);
-          });
+          // TODO: gsap 으로 값을 보간하려고 해도 바로 아래서 splice 로 제거해버리므로 줄어드는 게 보이기 전에 없어져 버린다.
+          // 줄어드는 게 보이도록 수정 필요 (제거해버리는 걸 다음 루프로 넘기면 되지 않을까 싶기도 한데.. 애매)
+          // gsap.to(enemy, {
+          //   radius: 0,
+          // });
+          enemies.splice(enemyIndex, 1);
+          projectiles.splice(projectileIndex, 1);
         }
       }
-    });
-  });
+    }
+  }
 })();
 
 window.addEventListener("click", (e) => {
