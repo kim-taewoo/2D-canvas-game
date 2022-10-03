@@ -9,6 +9,8 @@
       body {
         margin: 0;
         padding: 0;
+        font-family: sans-serif;
+        background-color: black;
       }
     </style>
   </head>
@@ -23,8 +25,84 @@
         user-select: none;
       "
     >
-      <span>Score: <span id="score">0</span></span>
+      <span>Score: <span id="scoreEl">0</span></span>
     </div>
+
+    <div
+      id="restartModalEl"
+      style="
+        display: none;
+        position: absolute;
+        background-color: white;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        left: 50%;
+        padding: 16px;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+        border-radius: 5px;
+      "
+    >
+      <label style="font-size: 14px; color: gray">Game Over</label>
+      <h1
+        id="restartModalScoreEl"
+        style="font-size: 48px; margin-bottom: 0; margin-top: 8px"
+      >
+        0
+      </h1>
+      <p style="margin: 0; font-size: 14px; color: gray">Points</p>
+      <button
+        id="restartButtonEl"
+        style="
+          margin-top: 12px;
+          background-color: blue;
+          border: none;
+          color: white;
+          padding: 8px 16px;
+          border-radius: 5px;
+          cursor: pointer;
+        "
+      >
+        Restart Game
+      </button>
+    </div>
+
+    <div
+      id="startModalEl"
+      style="
+        position: absolute;
+        background-color: white;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        left: 50%;
+        padding: 16px;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+        border-radius: 5px;
+      "
+    >
+      <h1 style="font-size: 24px; margin-bottom: 0; margin-top: 8px">
+        Base Defense Game
+      </h1>
+
+      <button
+        id="startButtonEl"
+        style="
+          margin-top: 12px;
+          background-color: blue;
+          border: none;
+          color: white;
+          padding: 8px 16px;
+          border-radius: 5px;
+          cursor: pointer;
+        "
+      >
+        Start
+      </button>
+    </div>
+
     <canvas></canvas>
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.2/gsap.min.js"

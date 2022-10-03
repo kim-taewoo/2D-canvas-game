@@ -1,28 +1,3 @@
-// DOM 에서 get 해오는 element 는 canvas 타입일거라는 확신이 없어서인지 아래처럼 JSDoc 형태로 따로 타입을 주입해주지 않으면 자동완성이 동작하지 않는다.
-// DOM 에서 가져오지 않고 createElement 로 canvas 를 만들면 타입 주입 없이도 잘 된다.
-/** @type {HTMLCanvasElement} */
-const canvas = document.querySelector("canvas");
-const scoreEl = document.querySelector("#score");
-const c = canvas.getContext("2d");
-
-canvas.width =
-  // document.documentElement.clientWidth ||
-  // document.clientWidth ||
-  window.innerWidth;
-canvas.height =
-  // document.documentElement.clientHeight ||
-  // document.clientHeight ||
-  window.innerHeight;
-const canvasMiddleX = canvas.width / 2;
-const canvasMiddleY = canvas.height / 2;
-
-const friction = 0.98;
-
-let score = 0;
-const projectiles = [];
-const enemies = [];
-const particles = [];
-
 class Player {
   constructor({ x, y, radius, color }) {
     this.x = x;
@@ -98,15 +73,62 @@ class Particle extends Projectile {
   }
 }
 
-const player = new Player({
+// DOM 에서 get 해오는 element 는 canvas 타입일거라는 확신이 없어서인지 아래처럼 JSDoc 형태로 따로 타입을 주입해주지 않으면 자동완성이 동작하지 않는다.
+// DOM 에서 가져오지 않고 createElement 로 canvas 를 만들면 타입 주입 없이도 잘 된다.
+/** @type {HTMLCanvasElement} */
+const canvas = document.querySelector("canvas");
+const scoreEl = document.querySelector("#scoreEl");
+const restartModalEl = document.querySelector("#restartModalEl");
+const restartModalScoreEl = document.querySelector("#restartModalScoreEl");
+const startModalEl = document.querySelector("#startModalEl");
+const restartButtonEl = document.querySelector("#restartButtonEl");
+const startButtonEl = document.querySelector("#startButtonEl");
+
+const c = canvas.getContext("2d");
+
+canvas.width =
+  // document.documentElement.clientWidth ||
+  // document.clientWidth ||
+  window.innerWidth;
+canvas.height =
+  // document.documentElement.clientHeight ||
+  // document.clientHeight ||
+  window.innerHeight;
+const canvasMiddleX = canvas.width / 2;
+const canvasMiddleY = canvas.height / 2;
+
+const friction = 0.98;
+let animationId;
+let intervalId;
+let score = 0;
+let projectiles = [];
+let enemies = [];
+let particles = [];
+let player = new Player({
   x: canvasMiddleX,
   y: canvasMiddleY,
   radius: 10,
   color: "white",
 });
 
-(function spawnEnemies() {
-  setInterval(() => {
+function init() {
+  score = 0;
+  scoreEl.innerHTML = 0;
+  animationId = undefined;
+  intervalId = undefined;
+  projectiles = [];
+  enemies = [];
+  particles = [];
+  player = new Player({
+    x: canvasMiddleX,
+    y: canvasMiddleY,
+    radius: 10,
+    color: "white",
+  });
+}
+
+function spawnEnemies() {
+  intervalId = setInterval(() => {
     // 원하는 Minimum value 를 빼고 곱한 뒤 더해준다.
     const radius = Math.random() * (30 - 4) + 4;
 
@@ -133,15 +155,14 @@ const player = new Player({
 
     enemies.push(new Enemy({ x, y, radius, color, velocity }));
   }, 1000);
-})();
+}
 
 // **왜 for loop 을 거꾸로 하는가??**
 // 그렇게 해야만 array 에서 element 를 제거하는 경우가 있을 때 (splice 같은 걸 통해서) 제거하는 element 의 뒤쪽 index 를 망치지 않을 것을 확신할 수 있다.
 // 또한 이미 화면에 그려진 element 가 있는데 그 element 를 지우게 되면 이미 그려졌던 화면이 깜빡이면서 다시 그리게 되는 상황이 발생하게 되는데,
 // 이를 막기 위해 setTimeout 같은 걸 이용해서 render 순서를 뒤로 미뤄야 하는 귀찮은 짓을 안 할 수 있다.
 
-let animationId;
-(function animate() {
+function animate() {
   animationId = requestAnimationFrame(animate);
   // 원래는 clearRect 를 해서 완전히 지워지고 새로운 프레임을 그려야 하겠지만
   // opacity 를 넣어줌으로써 빛의 꼬리 효과를 낼 수 있다. (fillRect 로 이전 것을 다 덮어버리긴 하지만 투명도가 있으므로 좀 덜 지워지는 느낌으로 덮임)
@@ -188,6 +209,20 @@ let animationId;
     if (dist - enemy.radius - player.radius < 0.5) {
       console.log("GAME OVER");
       cancelAnimationFrame(animationId);
+      clearInterval(intervalId);
+      restartModalEl.style.display = "block";
+      restartModalScoreEl.innerHTML = score;
+
+      // fromTo 는 2번째 객체가 변경 전(default) 상태일 때, 3번째가 변경 후 원하는 값
+      gsap.fromTo(
+        "#restartModalEl",
+        { scale: 0.8, opacity: 0 },
+        {
+          scale: 1,
+          opacity: 1,
+          ease: "expo",
+        }
+      );
     }
 
     for (
@@ -239,7 +274,7 @@ let animationId;
       }
     }
   }
-})();
+}
 
 window.addEventListener("click", (e) => {
   // atan 은 x, y 에 따른 각도를 반환해준다. y 를 첫번째 인자로 받음에 주의
@@ -267,4 +302,38 @@ window.addEventListener("resize", () => {
   console.log("resized");
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+});
+
+// restart game
+restartButtonEl.addEventListener("click", () => {
+  init();
+  animate();
+  spawnEnemies();
+  // restartModalEl.style.display = "none";
+  gsap.to("#restartModalEl", {
+    opacity: 0,
+    scale: 0.8,
+    duration: 0.2,
+    ease: "expo.in",
+    onComplete: () => {
+      restartModalEl.style.display = "none";
+    },
+  });
+});
+
+// start game
+startButtonEl.addEventListener("click", () => {
+  init();
+  animate();
+  spawnEnemies();
+  // startModalEl.style.display = 'none'
+  gsap.to("#startModalEl", {
+    opacity: 0,
+    scale: 0.8,
+    duration: 0.2,
+    ease: "expo.in",
+    onComplete: () => {
+      startModalEl.style.display = "none";
+    },
+  });
 });
