@@ -1,13 +1,10 @@
-class Player {
-  constructor({ x, y, radius, color }) {
+class Circle {
+  constructor({ x, y, radius, color, velocity = { x: 0, y: 0 } }) {
     this.x = x;
     this.y = y;
     this.radius = radius;
     this.color = color;
-    this.velocity = {
-      x: 0,
-      y: 0,
-    };
+    this.velocity = velocity;
   }
 
   draw() {
@@ -19,6 +16,14 @@ class Player {
 
   update() {
     this.draw();
+    this.x = this.x + this.velocity.x;
+    this.y = this.y + this.velocity.y;
+  }
+}
+
+class Player extends Circle {
+  update() {
+    super.draw();
 
     const friction = 0.99;
     this.velocity.x *= friction;
@@ -46,38 +51,16 @@ class Player {
   }
 }
 
-class Projectile {
-  constructor({ x, y, radius, color, velocity }) {
-    this.x = x;
-    this.y = y;
-    this.radius = radius;
-    this.color = color;
-    this.velocity = velocity;
-  }
+class Projectile extends Circle {}
 
-  draw() {
-    c.beginPath();
-    c.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    c.fillStyle = this.color;
-    c.fill();
-  }
-
-  // combine draw to update
-  update() {
-    this.draw();
-    this.x = this.x + this.velocity.x;
-    this.y = this.y + this.velocity.y;
-  }
-}
-
-class Enemy extends Projectile {
-  constructor({ x, y, radius, color, velocity }) {
-    super({ x, y, radius, color, velocity });
+class Enemy extends Circle {
+  constructor(args) {
+    super({ ...args });
     this.type = "Linear";
     this.radians = 0;
     this.center = {
-      x,
-      y,
+      x: args.x,
+      y: args.y,
     };
 
     if (Math.random() < 0.5) {
@@ -131,7 +114,7 @@ class Enemy extends Projectile {
   }
 }
 
-class Particle extends Projectile {
+class Particle extends Circle {
   constructor(args) {
     super({ ...args });
     this.alpha = 1;
@@ -425,7 +408,6 @@ startButtonEl.addEventListener("click", () => {
 });
 
 window.addEventListener("keydown", (event) => {
-  console.log(event.key);
   switch (event.key) {
     case "d":
       player.velocity.x += 1;
