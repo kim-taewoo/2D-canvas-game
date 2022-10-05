@@ -85,6 +85,10 @@ class Enemy extends Projectile {
 
       if (Math.random() < 0.5) {
         this.type = "Spinning";
+
+        if (Math.random() < 0.5) {
+          this.type = "Homing Spinning";
+        }
       }
     }
   }
@@ -106,6 +110,20 @@ class Enemy extends Projectile {
 
       this.x = this.x + this.velocity.x;
       this.y = this.y + this.velocity.y;
+    } else if (this.type === "Homing Spinning") {
+      this.radians += 0.1;
+      const angle = Math.atan2(
+        player.y - this.center.y,
+        player.x - this.center.x
+      );
+      this.velocity.x = Math.cos(angle);
+      this.velocity.y = Math.sin(angle);
+
+      this.center.x += this.velocity.x;
+      this.center.y += this.velocity.y;
+
+      this.x = this.center.x + Math.cos(this.radians) * 30;
+      this.y = this.center.y + Math.sin(this.radians) * 30;
     } else {
       this.x = this.x + this.velocity.x;
       this.y = this.y + this.velocity.y;
