@@ -74,22 +74,42 @@ class Enemy extends Projectile {
   constructor({ x, y, radius, color, velocity }) {
     super({ x, y, radius, color, velocity });
     this.type = "Linear";
+    this.radians = 0;
+    this.center = {
+      x,
+      y,
+    };
 
     if (Math.random() < 0.5) {
       this.type = "Homing";
+
+      if (Math.random() < 0.5) {
+        this.type = "Spinning";
+      }
     }
   }
 
   update() {
     super.draw();
-    if (this.type === "Homing") {
+    if (this.type === "Spinning") {
+      this.radians += 0.1;
+
+      this.center.x += this.velocity.x;
+      this.center.y += this.velocity.y;
+
+      this.x = this.center.x + Math.cos(this.radians) * 30;
+      this.y = this.center.y + Math.sin(this.radians) * 30;
+    } else if (this.type === "Homing") {
       const angle = Math.atan2(player.y - this.y, player.x - this.x);
       this.velocity.x = Math.cos(angle);
       this.velocity.y = Math.sin(angle);
-    }
 
-    this.x = this.x + this.velocity.x;
-    this.y = this.y + this.velocity.y;
+      this.x = this.x + this.velocity.x;
+      this.y = this.y + this.velocity.y;
+    } else {
+      this.x = this.x + this.velocity.x;
+      this.y = this.y + this.velocity.y;
+    }
   }
 }
 
@@ -389,16 +409,16 @@ startButtonEl.addEventListener("click", () => {
 window.addEventListener("keydown", (event) => {
   console.log(event.key);
   switch (event.key) {
-    case "ArrowRight":
+    case "d":
       player.velocity.x += 1;
       break;
-    case "ArrowUp":
+    case "w":
       player.velocity.y -= 1;
       break;
-    case "ArrowLeft":
+    case "a":
       player.velocity.x -= 1;
       break;
-    case "ArrowDown":
+    case "s":
       player.velocity.y += 1;
       break;
   }
