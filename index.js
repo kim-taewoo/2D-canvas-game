@@ -28,13 +28,19 @@ let intervalId;
 let score = 0;
 let projectiles = [];
 let enemies = [];
-let particles = [];
+let particlesa = [];
 let player = new Player({
   x: canvasMiddleX,
   y: canvasMiddleY,
   radius: 10,
   color: "white",
 });
+let items = [
+  new Item({
+    position: { x: 100, y: 100 },
+    image: "./img/lightningBolt.png",
+  }),
+];
 
 function init() {
   score = 0;
@@ -99,6 +105,11 @@ function animate() {
   // c.clearRect(0, 0, canvas.width, canvas.height);
   executeKeyController();
   player.update();
+
+  for (let itemIndex = items.length - 1; itemIndex >= 0; itemIndex--) {
+    const item = items[itemIndex];
+    item.update();
+  }
 
   for (
     let particleIndex = particles.length - 1;
@@ -268,10 +279,10 @@ startButtonEl.addEventListener("click", () => {
 });
 
 const keyPressedController = {
-  d: { pressed: false, func: () => (player.velocity.x += 1) },
-  w: { pressed: false, func: () => (player.velocity.y -= 1) },
-  a: { pressed: false, func: () => (player.velocity.x -= 1) },
-  s: { pressed: false, func: () => (player.velocity.y += 1) },
+  d: { pressed: false, func: () => (player.velocity.x += 0.5) },
+  w: { pressed: false, func: () => (player.velocity.y -= 0.5) },
+  a: { pressed: false, func: () => (player.velocity.x -= 0.5) },
+  s: { pressed: false, func: () => (player.velocity.y += 0.5) },
 };
 
 window.addEventListener("keydown", (event) => {
@@ -284,8 +295,6 @@ window.addEventListener("keydown", (event) => {
 
 window.addEventListener("keyup", (event) => {
   const pressedKey = event.key;
-  console.log(pressedKey, "keyUp");
-
   if (keyPressedController[pressedKey]) {
     keyPressedController[pressedKey].pressed = false;
   }
