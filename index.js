@@ -118,7 +118,6 @@ function animate() {
 
   for (let itemIndex = items.length - 1; itemIndex >= 0; itemIndex--) {
     const item = items[itemIndex] ?? [];
-    console.log(item);
     if (item.position.x > canvas.width) {
       items.splice(itemIndex, 1);
     } else item.update();
@@ -133,6 +132,7 @@ function animate() {
       player.color = "yellow";
       setTimeout(() => {
         player.weapon = null;
+        player.color = "white";
       }, 5000);
     }
   }
@@ -302,7 +302,7 @@ window.addEventListener("mousemove", onMouseMove);
 // 브라우저에 따라 화면의 크기는 렌더링 과정에서 달라질 수 있다. 따라서 canvas 너비, 높이를 초기 한 번의 값으로 세팅하기 보다
 // resize 이벤트에 따라 풀 사이즈를 세팅해주는 것이 좋다.(근데 분명히 사이즈가 변했는데 resize 핸들러의 콘솔을 안 찍힘.. 숨기는 건가?)
 window.addEventListener("resize", () => {
-  console.log("resized");
+  console.log("window resized");
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 });
