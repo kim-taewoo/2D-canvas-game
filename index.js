@@ -25,6 +25,7 @@ const canvasMiddleY = canvas.height / 2;
 const friction = 0.98;
 let animationId;
 let intervalId;
+let timeoutId;
 let score = 0;
 let projectiles = [];
 let enemies = [];
@@ -117,7 +118,7 @@ function animate() {
   player.update();
 
   for (let itemIndex = items.length - 1; itemIndex >= 0; itemIndex--) {
-    const item = items[itemIndex] ?? [];
+    const item = items[itemIndex];
     if (item.position.x > canvas.width) {
       items.splice(itemIndex, 1);
     } else item.update();
@@ -130,7 +131,8 @@ function animate() {
       items.splice(itemIndex, 1);
       player.weapon = "MachineGun";
       player.color = "yellow";
-      setTimeout(() => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
         player.weapon = null;
         player.color = "white";
       }, 5000);
