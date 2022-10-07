@@ -22,6 +22,11 @@ class Circle {
 }
 
 class Player extends Circle {
+  constructor({ weapon, ...args }) {
+    super(args);
+    this.weapon = weapon;
+  }
+
   update() {
     super.draw();
 
@@ -152,6 +157,7 @@ class Item {
       duration: 0.3,
       repeat: -1,
       yoyo: true,
+      ease: "linear",
     });
   }
 
@@ -174,5 +180,6 @@ class Item {
   update() {
     this.draw();
     this.radians += 0.01;
+    this.position.x += this.velocity.x;
   }
 }

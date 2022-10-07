@@ -29,18 +29,14 @@ let score = 0;
 let projectiles = [];
 let enemies = [];
 let particlesa = [];
+let frames = 0;
 let player = new Player({
   x: canvasMiddleX,
   y: canvasMiddleY,
   radius: 10,
   color: "white",
 });
-let items = [
-  new Item({
-    position: { x: 100, y: 100 },
-    image: "./img/lightningBolt.png",
-  }),
-];
+let items = [];
 
 function init() {
   score = 0;
@@ -50,6 +46,7 @@ function init() {
   projectiles = [];
   enemies = [];
   particles = [];
+  items = [];
   player = new Player({
     x: canvasMiddleX,
     y: canvasMiddleY,
@@ -91,6 +88,18 @@ function spawnEnemies() {
   }, 1000);
 }
 
+function spawnItems() {
+  spawnItemsId = setInterval(() => {
+    items.push(
+      new Item({
+        position: { x: -30, y: Math.random() * canvas.height },
+        velocity: { x: Math.random() + 2, y: 0 },
+        image: "./img/lightningBolt.png",
+      })
+    );
+  }, 5000);
+}
+
 // **왜 for loop 을 거꾸로 하는가??**
 // 그렇게 해야만 array 에서 element 를 제거하는 경우가 있을 때 (splice 같은 걸 통해서) 제거하는 element 의 뒤쪽 index 를 망치지 않을 것을 확신할 수 있다.
 // 또한 이미 화면에 그려진 element 가 있는데 그 element 를 지우게 되면 이미 그려졌던 화면이 깜빡이면서 다시 그리게 되는 상황이 발생하게 되는데,
@@ -102,13 +111,53 @@ function animate() {
   // opacity 를 넣어줌으로써 빛의 꼬리 효과를 낼 수 있다. (fillRect 로 이전 것을 다 덮어버리긴 하지만 투명도가 있으므로 좀 덜 지워지는 느낌으로 덮임)
   c.fillStyle = "rgba(0,0,0,0.1)";
   c.fillRect(0, 0, canvas.width, canvas.height);
+  frames++;
   // c.clearRect(0, 0, canvas.width, canvas.height);
   executeKeyController();
   player.update();
 
   for (let itemIndex = items.length - 1; itemIndex >= 0; itemIndex--) {
-    const item = items[itemIndex];
-    item.update();
+    const item = items[itemIndex] ?? [];
+    console.log(item);
+    if (item.position.x > canvas.width) {
+      items.splice(itemIndex, 1);
+    } else item.update();
+
+    const dist = Math.hypot(
+      player.x - item.position.x,
+      player.y - item.position.y
+    );
+    if (dist < item.image.height / 2 + player.radius) {
+      items.splice(itemIndex, 1);
+      player.weapon = "MachineGun";
+      player.color = "yellow";
+      setTimeout(() => {
+        player.weapon = null;
+      }, 5000);
+    }
+  }
+
+  if (player.weapon === "MachineGun") {
+    const angle = Math.atan2(
+      mouse.position.y - player.y,
+      mouse.position.x - player.x
+    );
+    const velocity = {
+      x: Math.cos(angle) * 5,
+      y: Math.sin(angle) * 5,
+    };
+
+    if (frames % 2 === 0) {
+      projectiles.push(
+        new Projectile({
+          x: player.x,
+          y: player.y,
+          radius: 5,
+          color: "yellow",
+          velocity,
+        })
+      );
+    }
   }
 
   for (
@@ -236,6 +285,20 @@ window.addEventListener("click", (e) => {
   projectiles.push(projectile);
 });
 
+const mouse = {
+  position: {
+    x: 0,
+    y: 0,
+  },
+};
+
+function onMouseMove(e) {
+  mouse.position.x = e.clientX;
+  mouse.position.y = e.clientY;
+}
+
+window.addEventListener("mousemove", onMouseMove);
+
 // 브라우저에 따라 화면의 크기는 렌더링 과정에서 달라질 수 있다. 따라서 canvas 너비, 높이를 초기 한 번의 값으로 세팅하기 보다
 // resize 이벤트에 따라 풀 사이즈를 세팅해주는 것이 좋다.(근데 분명히 사이즈가 변했는데 resize 핸들러의 콘솔을 안 찍힘.. 숨기는 건가?)
 window.addEventListener("resize", () => {
@@ -249,6 +312,7 @@ restartButtonEl.addEventListener("click", () => {
   init();
   animate();
   spawnEnemies();
+  spawnItems();
   // restartModalEl.style.display = "none";
   gsap.to("#restartModalEl", {
     opacity: 0,
@@ -266,6 +330,7 @@ startButtonEl.addEventListener("click", () => {
   init();
   animate();
   spawnEnemies();
+  spawnItems();
   // startModalEl.style.display = 'none'
   gsap.to("#startModalEl", {
     opacity: 0,
