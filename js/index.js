@@ -101,6 +101,26 @@ function spawnItems() {
   }, 5000);
 }
 
+function createScoreLabel({ position, score }) {
+  const scoreLabel = document.createElement("label");
+  scoreLabel.innerHTML = score;
+  scoreLabel.style.color = "white";
+  scoreLabel.style.position = "absolute";
+  scoreLabel.style.left = position.x + "px";
+  scoreLabel.style.top = position.y + "px";
+  scoreLabel.style.userSelect = "none";
+  document.body.appendChild(scoreLabel);
+
+  gsap.to(scoreLabel, {
+    opacity: 0,
+    y: -30,
+    duration: 0.75,
+    onComplete: () => {
+      scoreLabel.parentNode.removeChild(scoreLabel);
+    },
+  });
+}
+
 // **왜 for loop 을 거꾸로 하는가??**
 // 그렇게 해야만 array 에서 element 를 제거하는 경우가 있을 때 (splice 같은 걸 통해서) 제거하는 element 의 뒤쪽 index 를 망치지 않을 것을 확신할 수 있다.
 // 또한 이미 화면에 그려진 element 가 있는데 그 element 를 지우게 되면 이미 그려졌던 화면이 깜빡이면서 다시 그리게 되는 상황이 발생하게 되는데,
@@ -114,8 +134,8 @@ function animate() {
   c.fillRect(0, 0, canvas.width, canvas.height);
   frames++;
   // c.clearRect(0, 0, canvas.width, canvas.height);
-  executeKeyController();
   player.update();
+  executeKeyController();
 
   for (let itemIndex = items.length - 1; itemIndex >= 0; itemIndex--) {
     const item = items[itemIndex];
@@ -249,11 +269,25 @@ function animate() {
           gsap.to(enemy, {
             radius: enemy.radius - 10,
           });
+          createScoreLabel({
+            position: {
+              x: projectile.x,
+              y: projectile.y,
+            },
+            score: 100,
+          });
           projectiles.splice(projectileIndex, 1);
         } else {
           score += 150;
           scoreEl.innerHTML = score;
 
+          createScoreLabel({
+            position: {
+              x: projectile.x,
+              y: projectile.y,
+            },
+            score: 150,
+          });
           // TODO: gsap 으로 값을 보간하려고 해도 바로 아래서 splice 로 제거해버리므로 줄어드는 게 보이기 전에 없어져 버린다.
           // 줄어드는 게 보이도록 수정 필요 (제거해버리는 걸 다음 루프로 넘기면 되지 않을까 싶기도 한데.. 애매)
           // gsap.to(enemy, {
