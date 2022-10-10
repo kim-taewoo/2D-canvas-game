@@ -8,6 +8,8 @@ const restartModalScoreEl = document.querySelector("#restartModalScoreEl");
 const startModalEl = document.querySelector("#startModalEl");
 const restartButtonEl = document.querySelector("#restartButtonEl");
 const startButtonEl = document.querySelector("#startButtonEl");
+const volumeUpEl = document.querySelector("#volumeUpEl");
+const volumeOffEl = document.querySelector("#volumeOffEl");
 
 const c = canvas.getContext("2d");
 
@@ -19,8 +21,6 @@ canvas.height =
   // document.documentElement.clientHeight ||
   // document.clientHeight ||
   window.innerHeight;
-const canvasMiddleX = canvas.width / 2;
-const canvasMiddleY = canvas.height / 2;
 
 const friction = 0.98;
 let animationId;
@@ -31,17 +31,13 @@ let projectiles = [];
 let enemies = [];
 let particlesa = [];
 let frames = 0;
-let player = new Player({
-  x: canvasMiddleX,
-  y: canvasMiddleY,
-  radius: 10,
-  color: "white",
-});
+let player;
 let items = [];
 let backgroundParticles = [];
 let game = {
   active: false,
 };
+let audioInitialized = false;
 
 function init() {
   score = 0;
@@ -52,6 +48,8 @@ function init() {
   enemies = [];
   particles = [];
   items = [];
+  const canvasMiddleX = canvas.width / 2;
+  const canvasMiddleY = canvas.height / 2;
   backgroundParticles = [];
   player = new Player({
     x: canvasMiddleX,
@@ -371,8 +369,9 @@ function animate() {
 }
 
 window.addEventListener("click", (e) => {
-  if (!audio.background.playing()) {
+  if (!audio.background.playing() && !audioInitialized) {
     audio.background.play();
+    audioInitialized = true;
   }
 
   if (game.active) {
@@ -417,6 +416,7 @@ window.addEventListener("resize", () => {
   console.log("window resized");
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+  init();
 });
 
 // restart game
@@ -457,6 +457,27 @@ startButtonEl.addEventListener("click", () => {
   });
 });
 
+// mute everything
+volumeUpEl.addEventListener("click", () => {
+  audio.background.pause();
+  volumeOffEl.style.display = "block";
+  volumeUpEl.style.display = "none";
+
+  for (let key in audio) {
+    audio[key].mute(true);
+  }
+});
+
+// unmute everything
+volumeOffEl.addEventListener("click", () => {
+  if (audioInitialized) audio.background.play();
+  volumeOffEl.style.display = "none";
+  volumeUpEl.style.display = "block";
+  for (let key in audio) {
+    audio[key].mute(false);
+  }
+});
+
 const keyPressedController = {
   d: { pressed: false, func: () => (player.velocity.x += 0.1) },
   w: { pressed: false, func: () => (player.velocity.y -= 0.1) },
@@ -466,7 +487,6 @@ const keyPressedController = {
 
 window.addEventListener("keydown", (event) => {
   const pressedKey = event.key;
-  console.log(pressedKey, "keyDown");
   if (keyPressedController[pressedKey]) {
     keyPressedController[pressedKey].pressed = true;
   }

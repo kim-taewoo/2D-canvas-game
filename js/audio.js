@@ -16,7 +16,7 @@ const audio = {
     volume: 0.1,
   }),
   powerUp: new Howl({
-    src: "./audio/Power_up.wav",
+    src: "./audio/Powerup_noise.wav",
     volume: 0.1,
   }),
   select: new Howl({
