@@ -39,6 +39,9 @@ let player = new Player({
 });
 let items = [];
 let backgroundParticles = [];
+let game = {
+  active: false,
+};
 
 function init() {
   score = 0;
@@ -56,6 +59,9 @@ function init() {
     radius: 10,
     color: "white",
   });
+  game = {
+    active: true,
+  };
 
   const spacing = 30;
   for (let x = 0; x < canvas.width + spacing; x += spacing) {
@@ -190,6 +196,7 @@ function animate() {
       items.splice(itemIndex, 1);
       player.weapon = "MachineGun";
       player.color = "yellow";
+      audio.powerUp.play();
       if (timeoutId) clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         player.weapon = null;
@@ -218,6 +225,10 @@ function animate() {
           velocity,
         })
       );
+    }
+
+    if (frames % 5 === 0) {
+      audio.shoot.play();
     }
   }
 
@@ -260,6 +271,9 @@ function animate() {
       console.log("GAME OVER");
       cancelAnimationFrame(animationId);
       clearInterval(intervalId);
+      audio.death.play();
+      game.active = false;
+
       restartModalEl.style.display = "block";
       restartModalScoreEl.innerHTML = score;
 
@@ -303,6 +317,7 @@ function animate() {
         // 맞아서 줄어든 뒤에도 맞추기 쉬울 정도의 크기는 되어야 한다.
         if (enemy.radius - 10 > 7) {
           // gsap 을 이용해서 enemy 의 radius shrink 값 변경을 보간해준다.
+          audio.damageTaken.play();
           score += 100;
           scoreEl.innerHTML = score;
           gsap.to(enemy, {
@@ -317,6 +332,7 @@ function animate() {
           });
           projectiles.splice(projectileIndex, 1);
         } else {
+          audio.explode.play();
           score += 150;
           scoreEl.innerHTML = score;
 
@@ -355,23 +371,30 @@ function animate() {
 }
 
 window.addEventListener("click", (e) => {
-  // atan 은 x, y 에 따른 각도를 반환해준다. y 를 첫번째 인자로 받음에 주의
-  // 0 to 360 degrees 는 0 to 6.28 radians 와 같다(2PI)
-  // HTML canvas API 에선 오른쪽(Positive X) 축을 0 으로 잡고 시작하는 경우가 많은듯
-  const angle = Math.atan2(e.clientY - player.y, e.clientX - player.x);
-  // cos is for X and sin for Y
-  const velocity = {
-    x: Math.cos(angle) * 5,
-    y: Math.sin(angle) * 5,
-  };
-  const projectile = new Projectile({
-    x: player.x,
-    y: player.y,
-    radius: 5,
-    color: "white",
-    velocity,
-  });
-  projectiles.push(projectile);
+  if (!audio.background.playing()) {
+    audio.background.play();
+  }
+
+  if (game.active) {
+    // atan 은 x, y 에 따른 각도를 반환해준다. y 를 첫번째 인자로 받음에 주의
+    // 0 to 360 degrees 는 0 to 6.28 radians 와 같다(2PI)
+    // HTML canvas API 에선 오른쪽(Positive X) 축을 0 으로 잡고 시작하는 경우가 많은듯
+    const angle = Math.atan2(e.clientY - player.y, e.clientX - player.x);
+    // cos is for X and sin for Y
+    const velocity = {
+      x: Math.cos(angle) * 5,
+      y: Math.sin(angle) * 5,
+    };
+    const projectile = new Projectile({
+      x: player.x,
+      y: player.y,
+      radius: 5,
+      color: "white",
+      velocity,
+    });
+    projectiles.push(projectile);
+    audio.shoot.play();
+  }
 });
 
 const mouse = {
@@ -398,6 +421,7 @@ window.addEventListener("resize", () => {
 
 // restart game
 restartButtonEl.addEventListener("click", () => {
+  audio.select.play();
   init();
   animate();
   spawnEnemies();
@@ -416,6 +440,7 @@ restartButtonEl.addEventListener("click", () => {
 
 // start game
 startButtonEl.addEventListener("click", () => {
+  audio.select.play();
   init();
   animate();
   spawnEnemies();
