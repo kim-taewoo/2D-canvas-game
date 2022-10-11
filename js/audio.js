@@ -28,5 +28,6 @@ const audio = {
     src: "./audio/Hyper.wav",
     volume: 0.1,
     loop: true,
+    html5: true,
   }),
 };

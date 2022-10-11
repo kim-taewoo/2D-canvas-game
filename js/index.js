@@ -13,14 +13,14 @@ const volumeOffEl = document.querySelector("#volumeOffEl");
 
 const c = canvas.getContext("2d");
 
-canvas.width =
-  // document.documentElement.clientWidth ||
-  // document.clientWidth ||
-  window.innerWidth;
-canvas.height =
-  // document.documentElement.clientHeight ||
-  // document.clientHeight ||
-  window.innerHeight;
+// const options = {
+//   zone: document.getElementById("zone_joystick"),
+// };
+// const manager = nipplejs.create();
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const isMobile = /iPhone|iPad|iPod|Android/i.test(window.navigator.userAgent);
 
 const friction = 0.98;
 let animationId;
@@ -371,42 +371,42 @@ function animate() {
 }
 
 function shoot({ x, y }) {
-  if (game.active) {
-    // atan 은 x, y 에 따른 각도를 반환해준다. y 를 첫번째 인자로 받음에 주의
-    // 0 to 360 degrees 는 0 to 6.28 radians 와 같다(2PI)
-    // HTML canvas API 에선 오른쪽(Positive X) 축을 0 으로 잡고 시작하는 경우가 많은듯
-    const angle = Math.atan2(y - player.y, x - player.x);
-    // cos is for X and sin for Y
-    const velocity = {
-      x: Math.cos(angle) * 5,
-      y: Math.sin(angle) * 5,
-    };
-    const projectile = new Projectile({
-      x: player.x,
-      y: player.y,
-      radius: 5,
-      color: "white",
-      velocity,
-    });
-    projectiles.push(projectile);
-    audio.shoot.play();
-  }
+  if (!game.active) return;
+  // atan 은 x, y 에 따른 각도를 반환해준다. y 를 첫번째 인자로 받음에 주의
+  // 0 to 360 degrees 는 0 to 6.28 radians 와 같다(2PI)
+  // HTML canvas API 에선 오른쪽(Positive X) 축을 0 으로 잡고 시작하는 경우가 많은듯
+  const angle = Math.atan2(y - player.y, x - player.x);
+  // cos is for X and sin for Y
+  const velocity = {
+    x: Math.cos(angle) * 5,
+    y: Math.sin(angle) * 5,
+  };
+  const projectile = new Projectile({
+    x: player.x,
+    y: player.y,
+    radius: 5,
+    color: "white",
+    velocity,
+  });
+  projectiles.push(projectile);
+  audio.shoot.play();
 }
 
-window.addEventListener("click", (e) => {
+window.addEventListener("pointerdown", (e) => {
   if (!audio.background.playing() && !audioInitialized) {
     audio.background.play();
     audioInitialized = true;
   }
-  shoot({ x: e.clientX, y: e.clientY });
 });
 
-window.addEventListener("touchstart", (event) => {
-  const x = event.touches[0].clientX;
-  const y = event.touches[0].clientY;
+window.addEventListener("pointerdown", (event) => {
+  // const x = event.touches[0].clientX;
+  // const y = event.touches[0].clientY;
+  const x = event.clientX;
+  const y = event.clientY;
 
-  mouse.position.x = event.touches[0].clientX;
-  mouse.position.y = event.touches[0].clientY;
+  mouse.position.x = x;
+  mouse.position.y = y;
 
   shoot({ x, y });
 });
