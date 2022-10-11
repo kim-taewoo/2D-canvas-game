@@ -17,10 +17,12 @@ const c = canvas.getContext("2d");
 //   zone: document.getElementById("zone_joystick"),
 // };
 // const manager = nipplejs.create();
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+// canvas.width = window.innerWidth;
+// canvas.height = window.innerHeight;
 
-const isMobile = /iPhone|iPad|iPod|Android/i.test(window.navigator.userAgent);
+let canvasWidth = window.innerWidth;
+let canvasHeight = window.innerHeight;
+scaleCanvas(canvas, c, canvasWidth, canvasHeight);
 
 const friction = 0.98;
 let animationId;
@@ -48,8 +50,8 @@ function init() {
   enemies = [];
   particles = [];
   items = [];
-  const canvasMiddleX = canvas.width / 2;
-  const canvasMiddleY = canvas.height / 2;
+  const canvasMiddleX = canvasWidth / 2;
+  const canvasMiddleY = canvasHeight / 2;
   backgroundParticles = [];
   player = new Player({
     x: canvasMiddleX,
@@ -62,8 +64,8 @@ function init() {
   };
 
   const spacing = 30;
-  for (let x = 0; x < canvas.width + spacing; x += spacing) {
-    for (let y = 0; y < canvas.height + spacing; y += spacing) {
+  for (let x = 0; x < canvasWidth + spacing; x += spacing) {
+    for (let y = 0; y < canvasHeight + spacing; y += spacing) {
       backgroundParticles.push(
         new BackgroundParticle({
           position: {
@@ -78,7 +80,7 @@ function init() {
 
   // 객체들의 자취 제거 (fillRect 에 투명도 있는 색으로 게임중에 덧칠하기 때문에 흔적이 남음)
   c.fillStyle = "black";
-  c.fillRect(0, 0, canvas.width, canvas.height);
+  c.fillRect(0, 0, canvasWidth, canvasHeight);
 }
 
 function spawnEnemies() {
@@ -90,11 +92,11 @@ function spawnEnemies() {
     let y;
 
     if (Math.random() < 0.5) {
-      x = Math.random() < 0.5 ? 0 - radius : canvas.width + radius;
-      y = Math.random() * canvas.height;
+      x = Math.random() < 0.5 ? 0 - radius : canvasWidth + radius;
+      y = Math.random() * canvasHeight;
     } else {
-      x = Math.random() * canvas.width;
-      y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
+      x = Math.random() * canvasWidth;
+      y = Math.random() < 0.5 ? 0 - radius : canvasHeight + radius;
     }
 
     const color = `hsl(${Math.random() * 360}, 50%, 50%)`;
@@ -154,7 +156,7 @@ function animate() {
   // 원래는 clearRect 를 해서 완전히 지워지고 새로운 프레임을 그려야 하겠지만
   // opacity 를 넣어줌으로써 빛의 꼬리 효과를 낼 수 있다. (fillRect 로 이전 것을 다 덮어버리긴 하지만 투명도가 있으므로 좀 덜 지워지는 느낌으로 덮임)
   c.fillStyle = "rgba(0,0,0,0.1)";
-  c.fillRect(0, 0, canvas.width, canvas.height);
+  c.fillRect(0, 0, canvasWidth, canvasHeight);
   frames++;
   // c.clearRect(0, 0, canvas.width, canvas.height);
   player.update();
@@ -183,7 +185,7 @@ function animate() {
 
   for (let itemIndex = items.length - 1; itemIndex >= 0; itemIndex--) {
     const item = items[itemIndex];
-    if (item.position.x > canvas.width) {
+    if (item.position.x > canvasWidth) {
       items.splice(itemIndex, 1);
     } else item.update();
 
@@ -253,9 +255,9 @@ function animate() {
     projectile.update();
     if (
       projectile.x + projectile.radius < 0 ||
-      projectile.x - projectile.radius > canvas.width ||
+      projectile.x - projectile.radius > canvasWidth ||
       projectile.y + projectile.radius < 0 ||
-      projectile.y - projectile.radius > canvas.height
+      projectile.y - projectile.radius > canvasHeight
     ) {
       projectiles.splice(projectileIndex, 1);
     }
@@ -536,4 +538,34 @@ function executeKeyController() {
   Object.keys(keyPressedController).forEach((key) => {
     keyPressedController[key].pressed && keyPressedController[key].func();
   });
+}
+
+function scaleCanvas(canvas, context, width, height) {
+  // Handle window for SSR
+  if (typeof window === "undefined") return null;
+
+  // determine the actual ratio we want to draw at
+  const ratio = window.devicePixelRatio || 1;
+
+  if (devicePixelRatio !== 1) {
+    // set the 'real' canvas size to the higher width/height
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+
+    // ...then scale it back down with CSS
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
+  } else {
+    // this is a normal 1:1 device; just scale it simply
+    canvas.width = width;
+    canvas.height = height;
+    canvas.style.width = "";
+    canvas.style.height = "";
+  }
+
+  // scale the drawing context so everything will work at the higher ratio
+  context.scale(ratio, ratio);
+
+  canvasWidth = Number(canvas.style.width.split("px")[0]);
+  canvasHeight = Number(canvas.style.height.split("px")[0]);
 }
