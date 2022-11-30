@@ -13,12 +13,13 @@ const volumeOffEl = document.querySelector("#volumeOffEl");
 
 const c = canvas.getContext("2d");
 
-// const options = {
-//   zone: document.getElementById("zone_joystick"),
-// };
-// const manager = nipplejs.create();
-// canvas.width = window.innerWidth;
-// canvas.height = window.innerHeight;
+const options = {
+  zone: document.getElementById("joystick-zone"),
+  mode: "static",
+  position: { left: "50%", bottom: "50%" },
+};
+const manager = nipplejs.create(options);
+const joystick = manager.get(0);
 
 let canvasWidth = window.innerWidth;
 let canvasHeight = window.innerHeight;
@@ -569,3 +570,17 @@ function scaleCanvas(canvas, context, width, height) {
   canvasWidth = Number(canvas.style.width.split("px")[0]);
   canvasHeight = Number(canvas.style.height.split("px")[0]);
 }
+
+window.dispatchEvent(new Event("resize"));
+
+joystick.on("move", (e, data) => {
+  const {
+    angle: { radian },
+  } = data;
+
+  const x = Math.cos(radian) * 0.08;
+  const y = -Math.sin(radian) * 0.08;
+
+  player.velocity.x += x;
+  player.velocity.y += y;
+});

@@ -16,6 +16,7 @@ class Circle {
 
   update() {
     this.draw();
+
     this.x = this.x + this.velocity.x;
     this.y = this.y + this.velocity.y;
   }
@@ -33,9 +34,12 @@ class Player extends Circle {
     const canvasWidth = Number(canvas.style.width.split("px")[0]);
     const canvasHeight = Number(canvas.style.height.split("px")[0]);
 
-    const friction = 0.99;
+    const friction = 0.985;
     this.velocity.x *= friction;
     this.velocity.y *= friction;
+
+    if (this.velocity.x > 2) this.velocity.x = 2;
+    if (this.velocity.y > 2) this.velocity.y = 2;
 
     // collision detection for x axis
     if (
