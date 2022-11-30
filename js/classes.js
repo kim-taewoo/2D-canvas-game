@@ -17,6 +17,11 @@ class Circle {
   update() {
     this.draw();
 
+    if (this.velocity.x > 2) this.velocity.x = 2;
+    if (this.velocity.y > 2) this.velocity.y = 2;
+    if (this.velocity.x < -2) this.velocity.x = -2;
+    if (this.velocity.y < -2) this.velocity.y = -2;
+
     this.x = this.x + this.velocity.x;
     this.y = this.y + this.velocity.y;
   }
@@ -34,12 +39,9 @@ class Player extends Circle {
     const canvasWidth = Number(canvas.style.width.split("px")[0]);
     const canvasHeight = Number(canvas.style.height.split("px")[0]);
 
-    const friction = 0.985;
+    const friction = 0.99;
     this.velocity.x *= friction;
     this.velocity.y *= friction;
-
-    if (this.velocity.x > 2) this.velocity.x = 2;
-    if (this.velocity.y > 2) this.velocity.y = 2;
 
     // collision detection for x axis
     if (
@@ -102,7 +104,7 @@ class Enemy extends Circle {
       const angle = Math.atan2(player.y - this.y, player.x - this.x);
       this.velocity.x = Math.cos(angle);
       this.velocity.y = Math.sin(angle);
-
+      console.log(this.velocity.x, this.velocity.y);
       this.x = this.x + this.velocity.x;
       this.y = this.y + this.velocity.y;
     } else if (this.type === "Homing Spinning") {
