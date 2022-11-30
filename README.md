@@ -1,3 +1,3 @@
 # Deployed URL
 
-https://kim-taewoo.github.io/vampire-survivors-clone/
+https://kim-taewoo.github.io/2D-canvas-game/
